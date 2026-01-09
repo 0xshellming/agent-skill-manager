@@ -48,16 +48,52 @@ export async function POST(request: Request) {
       }
     }
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const errorType = error instanceof Error ? error.constructor.name : 'UnknownError'
+    const errorStack = error instanceof Error ? error.stack : undefined
+
     console.error('Crawl failed:', error)
-    return NextResponse.json({ error: 'Crawl failed', details: String(error) }, { status: 500 })
+
+    return NextResponse.json(
+      {
+        success: false,
+        action,
+        error: errorMessage,
+        errorType,
+        stack: process.env.NODE_ENV === 'development' ? errorStack : undefined,
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 },
+    )
   }
 }
 
 export async function GET() {
   try {
     const status = await getCrawlStatus()
-    return NextResponse.json({ status: 'ok', ...status })
+    return NextResponse.json({
+      success: true,
+      status: 'ok',
+      ...status,
+      timestamp: new Date().toISOString(),
+    })
   } catch (error) {
-    return NextResponse.json({ status: 'error', error: String(error) })
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const errorType = error instanceof Error ? error.constructor.name : 'UnknownError'
+    const errorStack = error instanceof Error ? error.stack : undefined
+
+    console.error('GET crawl status failed:', error)
+
+    return NextResponse.json(
+      {
+        success: false,
+        status: 'error',
+        error: errorMessage,
+        errorType,
+        stack: process.env.NODE_ENV === 'development' ? errorStack : undefined,
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 },
+    )
   }
 }

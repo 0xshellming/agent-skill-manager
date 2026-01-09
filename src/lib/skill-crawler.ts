@@ -223,13 +223,17 @@ export async function updateNextPendingSkill() {
   const skill = pending.docs[0]
 
   if (!skill.skillPath) {
-    console.log(`  ⚠️ Skill ${skill.name} has no skillPath, marking as failed`)
+    const errorMessage = 'Skill has no skillPath'
+    console.log(`  ⚠️ Skill ${skill.name}: ${errorMessage}, marking as failed`)
     await payload.update({
       collection: 'skills',
       id: skill.id,
-      data: { crawlStatus: 'failed' },
+      data: {
+        crawlStatus: 'failed',
+        crawlError: errorMessage,
+      },
     })
-    return { updated: false, error: 'No skillPath', remaining: pending.totalDocs - 1 }
+    return { updated: false, error: errorMessage, remaining: pending.totalDocs - 1 }
   }
 
   console.log(`🤖 Updating skill: ${skill.name} (${skill.skillPath})`)
@@ -248,13 +252,17 @@ export async function updateNextPendingSkill() {
     const skillMd = await fetchRawFile(owner, repo, `${skillPath}/SKILL.md`, branch)
 
     if (!skillMd) {
-      console.log(`  ⚠️ No SKILL.md found`)
+      const errorMessage = 'SKILL.md not found in repository'
+      console.log(`  ⚠️ ${errorMessage}`)
       await payload.update({
         collection: 'skills',
         id: skill.id,
-        data: { crawlStatus: 'failed' },
+        data: {
+          crawlStatus: 'failed',
+          crawlError: `${errorMessage}\n\nSkill path: ${skillPath}\nRepository: ${owner}/${repo}\nBranch: ${branch}`,
+        },
       })
-      return { updated: false, error: 'No SKILL.md', remaining: pending.totalDocs - 1 }
+      return { updated: false, error: errorMessage, remaining: pending.totalDocs - 1 }
     }
 
     const readme = await fetchRawFile(owner, repo, `${skillPath}/README.md`, branch)
@@ -323,10 +331,16 @@ export async function updateNextPendingSkill() {
   } catch (error) {
     console.error(`  ❌ Failed to update ${skill.name}:`, error)
 
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const errorStack = error instanceof Error ? error.stack : undefined
+
     await payload.update({
       collection: 'skills',
       id: skill.id,
-      data: { crawlStatus: 'failed' },
+      data: {
+        crawlStatus: 'failed',
+        crawlError: `${errorMessage}${errorStack ? `\n\nStack:\n${errorStack}` : ''}`,
+      },
     })
 
     const remainingCount = await payload.count({
@@ -334,7 +348,7 @@ export async function updateNextPendingSkill() {
       where: { crawlStatus: { equals: 'pending' } },
     })
 
-    return { updated: false, error: String(error), remaining: remainingCount.totalDocs }
+    return { updated: false, error: errorMessage, remaining: remainingCount.totalDocs }
   }
 }
 
@@ -354,5 +368,162 @@ export async function getCrawlStatus() {
     completed: completed.totalDocs,
     failed: failed.totalDocs,
     total: pending.totalDocs + processing.totalDocs + completed.totalDocs + failed.totalDocs,
+  }
+}
+
+export async function fetchSkillById(skillId: string) {
+  const payload = await getPayload({ config })
+
+  console.log(`🤖 Fetching skill by ID: ${skillId}`)
+
+  const skill = await payload.findByID({
+    collection: 'skills',
+    id: skillId,
+  })
+
+  if (!skill) {
+    const errorMessage = `Skill with ID ${skillId} not found`
+    console.log(`  ⚠️ ${errorMessage}`)
+    return { success: false, error: errorMessage }
+  }
+
+  console.log(`  📋 Found skill: ${skill.name} (${skill.slug})`)
+
+  await payload.update({
+    collection: 'skills',
+    id: skill.id,
+    data: { crawlStatus: 'processing', crawlError: null },
+  })
+
+  try {
+    const [owner, repo, ...pathParts] = (skill.skillPath || '').split('/')
+    const skillPath = pathParts.join('/')
+    const branch = skill.branch || 'main'
+
+    console.log(`  📥 Fetching from ${owner}/${repo}/${skillPath}`)
+
+    const skillMd = await fetchRawFile(owner, repo, `${skillPath}/SKILL.md`, branch)
+
+    if (!skillMd) {
+      const errorMessage = 'SKILL.md not found in repository'
+      console.log(`  ⚠️ ${errorMessage}`)
+      await payload.update({
+        collection: 'skills',
+        id: skill.id,
+        data: {
+          crawlStatus: 'failed',
+          crawlError: `${errorMessage}\n\nSkill path: ${skillPath}\nRepository: ${owner}/${repo}\nBranch: ${branch}`,
+        },
+      })
+      return {
+        success: false,
+        error: errorMessage,
+        details: {
+          skillPath,
+          repository: `${owner}/${repo}`,
+          branch,
+        },
+      }
+    }
+
+    const readme = await fetchRawFile(owner, repo, `${skillPath}/README.md`, branch)
+
+    const repoInfo = (await fetchRepoInfo(owner, repo, process.env.GITHUB_TOKEN)) as RepoInfo
+
+    console.log(`  🤖 Parsing skill content with AI...`)
+
+    const parsed = await parseSkillWithAI(skillMd, readme, {
+      owner,
+      repo,
+      skillName: skill.slug || skill.name || '',
+      stars: repoInfo.stargazers_count || 0,
+    })
+
+    const categoryId = await getOrCreateCategory(payload, parsed.category)
+    const tagIds = await getOrCreateTags(payload, parsed.tags)
+
+    await payload.update({
+      collection: 'skills',
+      id: skill.id,
+      data: {
+        name: parsed.name,
+        description: parsed.description,
+        category: categoryId,
+        tags: tagIds,
+        compatibility: parsed.compatibility,
+        useCases: parsed.useCases.map((useCase) => ({ useCase })),
+        prerequisites: parsed.prerequisites.map((prerequisite) => ({ prerequisite })),
+        installCommand: `askm install ${owner}/${skill.slug}`,
+        rawSkillMd: skillMd,
+        stars: repoInfo.stargazers_count || 0,
+        crawlStatus: 'completed',
+        crawlError: null,
+      },
+      locale: 'en',
+    })
+
+    await payload.update({
+      collection: 'skills',
+      id: skill.id,
+      data: {
+        name: parsed.translations.zh.name,
+        description: parsed.translations.zh.description,
+        useCases: parsed.translations.zh.useCases.map((useCase) => ({ useCase })),
+      },
+      locale: 'zh',
+    })
+
+    await payload.update({
+      collection: 'skills',
+      id: skill.id,
+      data: {
+        name: parsed.translations.ja.name,
+        description: parsed.translations.ja.description,
+        useCases: parsed.translations.ja.useCases.map((useCase) => ({ useCase })),
+      },
+      locale: 'ja',
+    })
+
+    console.log(`  ✅ Successfully fetched: ${skill.name}`)
+
+    return {
+      success: true,
+      skill: skill.name,
+      data: {
+        id: skill.id,
+        slug: skill.slug,
+        name: parsed.name,
+        category: parsed.category,
+        tags: parsed.tags,
+      },
+    }
+  } catch (error) {
+    console.error(`  ❌ Failed to fetch ${skill.name}:`, error)
+
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const errorStack = error instanceof Error ? error.stack : undefined
+    const errorType = error instanceof Error ? error.constructor.name : 'UnknownError'
+
+    await payload.update({
+      collection: 'skills',
+      id: skill.id,
+      data: {
+        crawlStatus: 'failed',
+        crawlError: `[${errorType}] ${errorMessage}${errorStack ? `\n\nStack:\n${errorStack}` : ''}`,
+      },
+    })
+
+    return {
+      success: false,
+      error: errorMessage,
+      errorType,
+      stack: errorStack,
+      details: {
+        skillId,
+        skillName: skill.name,
+        skillSlug: skill.slug,
+        skillPath: skill.skillPath,
+      },
+    }
   }
 }
