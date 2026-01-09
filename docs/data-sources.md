@@ -6,12 +6,17 @@
 
 ## 数据源概览
 
-| 数据源 | Stars | 技能数量 | 格式 | 优先级 |
-|--------|-------|---------|------|--------|
-| [anthropics/skills](https://github.com/anthropics/skills) | 36.4k ⭐ | ~15+ | SKILL.md | ⭐⭐⭐⭐⭐ |
-| [ComposioHQ/awesome-claude-skills](https://github.com/ComposioHQ/awesome-claude-skills) | 16.8k ⭐ | ~25+ | SKILL.md | ⭐⭐⭐⭐⭐ |
-| [openai/skills](https://github.com/openai/skills) | 1.4k ⭐ | ~20+ | SKILL.md | ⭐⭐⭐⭐ |
-| GitHub Topic: agent-skill | - | 动态 | 各种 | ⭐⭐⭐ |
+### Awesome Lists / Collections (数据源列表)
+
+| 数据源                                                                                      | Stars    | 技能数量 | 格式     | 优先级       |
+| ------------------------------------------------------------------------------------------- | -------- | -------- | -------- | ------------ |
+| [anthropics/skills](https://github.com/anthropics/skills)                                   | 36.4k ⭐ | ~15+     | SKILL.md | ⭐⭐⭐⭐⭐⭐ |
+| [ComposioHQ/awesome-claude-skills](https://github.com/ComposioHQ/awesome-claude-skills)     | 16.8k ⭐ | ~25+     | SKILL.md | ⭐⭐⭐⭐⭐⭐ |
+| [openai/skills](https://github.com/openai/skills)                                           | 1.4k ⭐  | ~20+     | SKILL.md | ⭐⭐⭐⭐     |
+| [karanb192/awesome-claude-skills](https://github.com/karanb192/awesome-claude-skills)       | -        | 50+      | SKILL.md | ⭐⭐⭐⭐⭐   |
+| [heilcheng/awesome-agent-skills](https://github.com/heilcheng/awesome-agent-skills)         | -        | 动态     | SKILL.md | ⭐⭐⭐⭐     |
+| [skillmatic-ai/awesome-agent-skills](https://github.com/skillmatic-ai/awesome-agent-skills) | -        | 动态     | SKILL.md | ⭐⭐⭐⭐     |
+| GitHub Topic: agent-skill                                                                   | -        | 动态     | 各种     | ⭐⭐⭐       |
 
 ---
 
@@ -62,7 +67,7 @@ anthropics/skills/
 
 - **地址**: https://github.com/openai/skills
 - **分支**: main
-- **技能路径**: 
+- **技能路径**:
   - `skills/.system/` (系统技能)
   - `skills/.curated/` (精选技能)
   - `skills/.experimental/` (实验技能)
@@ -201,14 +206,14 @@ Detailed description and instructions...
 
 ### YAML Frontmatter 字段
 
-| 字段 | 必需 | 说明 |
-|------|------|------|
-| name | ✅ | 技能标识符 |
-| description | ✅ | 简短描述 |
-| author | ❌ | 作者名 |
-| version | ❌ | 版本号 |
-| license | ❌ | 许可证 |
-| tags | ❌ | 标签数组 |
+| 字段        | 必需 | 说明       |
+| ----------- | ---- | ---------- |
+| name        | ✅   | 技能标识符 |
+| description | ✅   | 简短描述   |
+| author      | ❌   | 作者名     |
+| version     | ❌   | 版本号     |
+| license     | ❌   | 许可证     |
+| tags        | ❌   | 标签数组   |
 
 ### 非标准格式处理
 
@@ -267,39 +272,39 @@ Detailed description and instructions...
 
 ```typescript
 const SKILL_SOURCES = [
-  { 
-    owner: 'anthropics', 
-    repo: 'skills', 
+  {
+    owner: 'anthropics',
+    repo: 'skills',
     skillsPath: 'skills',
-    branch: 'main'
+    branch: 'main',
   },
-  { 
-    owner: 'openai', 
-    repo: 'skills', 
+  {
+    owner: 'openai',
+    repo: 'skills',
     skillsPath: 'skills/.curated',
-    branch: 'main'
+    branch: 'main',
   },
-  { 
-    owner: 'openai', 
-    repo: 'skills', 
+  {
+    owner: 'openai',
+    repo: 'skills',
     skillsPath: 'skills/.system',
-    branch: 'main'
+    branch: 'main',
   },
-  { 
-    owner: 'ComposioHQ', 
-    repo: 'awesome-claude-skills', 
+  {
+    owner: 'ComposioHQ',
+    repo: 'awesome-claude-skills',
     skillsPath: '',
-    branch: 'master'
+    branch: 'master',
   },
 ]
 ```
 
 ### 速率限制
 
-| 服务 | 限制 | 处理方式 |
-|------|------|---------|
+| 服务       | 限制             | 处理方式   |
+| ---------- | ---------------- | ---------- |
 | GitHub API | 5000/小时 (认证) | 使用 Token |
-| Gemini API | 1500/分钟 | 500ms 间隔 |
+| Gemini API | 1500/分钟        | 500ms 间隔 |
 
 ---
 
@@ -307,11 +312,11 @@ const SKILL_SOURCES = [
 
 ### 更新频率
 
-| 数据类型 | 更新频率 |
-|---------|---------|
-| 技能内容 (SKILL.md) | 每6小时 |
-| Star 数 | 每6小时 |
-| 新技能发现 | 每6小时 |
+| 数据类型            | 更新频率 |
+| ------------------- | -------- |
+| 技能内容 (SKILL.md) | 每6小时  |
+| Star 数             | 每6小时  |
+| 新技能发现          | 每6小时  |
 
 ### 增量更新
 
@@ -384,7 +389,65 @@ try {
 
 ---
 
-## 9. 扩展数据源
+## 9. 更多 Agent Skills 相关仓库
+
+### 9.1 Awesome Lists (精选列表)
+
+| 仓库                                                                                        | Stars   | 特点                        | 可抓取 |
+| ------------------------------------------------------------------------------------------- | ------- | --------------------------- | ------ |
+| [karanb192/awesome-claude-skills](https://github.com/karanb192/awesome-claude-skills)       | -       | 50+ 验证的 Claude Skills    | ✅     |
+| [VoltAgent/awesome-claude-skills](https://github.com/VoltAgent/awesome-claude-skills)       | -       | Claude Skills 资源列表      | ✅     |
+| [heilcheng/awesome-agent-skills](https://github.com/heilcheng/awesome-agent-skills)         | -       | 通用 AI 编程 agent 技能列表 | ❌     |
+| [skillmatic-ai/awesome-agent-skills](https://github.com/skillmatic-ai/awesome-agent-skills) | -       | Agent Skills 理论与实践     | ❌     |
+| [BehiSecc/awesome-claude-skills](https://github.com/BehiSecc/awesome-claude-skills)         | 3.7k ⭐ | 分类详细                    | ✅     |
+| [travisvn/awesome-claude-skills](https://github.com/travisvn/awesome-claude-skills)         | -       | 资源和工具列表              | ✅     |
+| [brightdata/awesome-claude-skills](https://github.com/brightdata/awesome-claude-skills)     | -       | 生产就绪技能集合            | ✅     |
+
+### 9.2 Official / Tooling (官方/工具)
+
+| 仓库                                                                  | Stars   | 说明                  | 可抓取 |
+| --------------------------------------------------------------------- | ------- | --------------------- | ------ |
+| [huggingface/skills](https://github.com/huggingface/skills)           | -       | 兼容多个 AI agent     | ✅     |
+| [agentskills/agentskills](https://github.com/agentskills/agentskills) | -       | Agent Skills 规范文档 | ❌     |
+| [modelcontextprotocol](https://github.com/modelcontextprotocol)       | -       | MCP 规范与文档        | ❌     |
+| [openai/skills](https://github.com/openai/skills)                     | 1.4k ⭐ | Codex 技能目录        | ✅     |
+
+### 9.3 Skills Collections (技能集合)
+
+| 仓库                                                                                                    | Stars | 说明                           | 可抓取 |
+| ------------------------------------------------------------------------------------------------------- | ----- | ------------------------------ | ------ |
+| [meetrais/claude-agent-skills](https://github.com/meetrais/claude-agent-skills)                         | -     | Claude Skills API 示例         | ✅     |
+| [numman-ali/openskills](https://github.com/numman-ali/openskills)                                       | -     | 通用技能加载器，支持多个 agent | ❌     |
+| [alirezarezvani/claude-code-skill-factory](https://github.com/alirezarezvani/claude-code-skill-factory) | -     | Claude Skills 构建工具         | ❌     |
+| [grandinh/claude-code-central](https://github.com/grandinh/claude-code-central)                         | -     | 共享 Claude Code agents 和技能 | ✅     |
+
+### 9.4 Claude Code Skills (Claude Code 专用)
+
+| 仓库                                                                                              | Stars | 技能数量                         | 说明 | 可抓取 |
+| ------------------------------------------------------------------------------------------------- | ----- | -------------------------------- | ---- | ------ |
+| [automationcreators/claude-code-skills](https://github.com/automationcreators/claude-code-skills) | -     | 全面的 Claude Code 技能集合      | ✅   |
+| [levnikolaevich/claude-code-skills](https://github.com/levnikolaevich/claude-code-skills)         | -     | 51 个生产就绪技能，Agile 工作流  | ✅   |
+| [czottmann/claude-code-skills](https://github.com/czottmann/claude-code-stuff)                    | -     | 个人配置系统，包含 agents 和技能 | ✅   |
+| [cblecker/claude-skills](https://github.com/cblecker/claude-skills)                               | -     | Claude Code 插件市场             | ✅   |
+
+### 9.5 MCP Servers (Model Context Protocol)
+
+| 仓库                                                                    | Stars | 说明                    | 相关性 |
+| ----------------------------------------------------------------------- | ----- | ----------------------- | ------ |
+| [github/github-mcp-server](https://github.com/github/github-mcp-server) | -     | GitHub 官方 MCP 服务器  | 🔗     |
+| [microsoft/mcp](https://github.com/microsoft/mcp)                       | -     | 微软官方 MCP 服务器目录 | 🔗     |
+| [bobmatnyc/mcp-skillset](https://github.com/bobmatnyc/mcp-skillset)     | -     | RAG 驱动的动态技能服务  | 🔗     |
+
+### 9.6 Tooling & Infrastructure (工具和基础设施)
+
+| 仓库                                                                    | Stars | 说明                                    |
+| ----------------------------------------------------------------------- | ----- | --------------------------------------- |
+| [blencorp/claude-code-kit](https://github.com/blencorp/claude-code-kit) | -     | Claude Code 基础设施，30秒自动部署      |
+| [numman-ali/openskills](https://github.com/numman-ali/openskills)       | -     | 通用技能加载器，兼容 Claude Skills 格式 |
+
+---
+
+## 10. 扩展数据源
 
 ### 未来计划
 
@@ -415,4 +478,4 @@ SKILL_SOURCES.push({
 
 ---
 
-*数据源文档 v1.0 | 更新时间: 2026-01-10*
+_数据源文档 v1.0 | 更新时间: 2026-01-10_

@@ -24,6 +24,11 @@ const SKILL_SOURCES: SkillSource[] = [
   { owner: 'openai', repo: 'skills', skillsPath: 'skills/.curated' },
   { owner: 'openai', repo: 'skills', skillsPath: 'skills/.system' },
   { owner: 'ComposioHQ', repo: 'awesome-claude-skills', skillsPath: '', branch: 'master' },
+  { owner: 'karanb192', repo: 'awesome-claude-skills', skillsPath: '', branch: 'main' },
+  { owner: 'BehiSecc', repo: 'awesome-claude-skills', skillsPath: '', branch: 'main' },
+  { owner: 'meetrais', repo: 'claude-agent-skills', skillsPath: 'skills', branch: 'main' },
+  { owner: 'automationcreators', repo: 'claude-code-skills', skillsPath: '', branch: 'main' },
+  { owner: 'levnikolaevich', repo: 'claude-code-skills', skillsPath: '', branch: 'main' },
 ]
 
 function slugify(text: string): string {
