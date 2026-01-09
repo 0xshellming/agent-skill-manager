@@ -476,7 +476,7 @@ export async function parseSkillWithAI(
   repoInfo: { owner: string; repo: string; skillName: string; stars: number }
 ): Promise<ParsedSkill> {
   const { object } = await generateObject({
-    model: google('gemini-2.0-flash'),
+    model: google('gemini-3-flash-preview'),
     schema: SkillSchema,
     prompt: `You are analyzing an AI Agent Skill from GitHub. Extract structured information.
 

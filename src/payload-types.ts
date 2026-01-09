@@ -69,6 +69,8 @@ export interface Config {
   collections: {
     users: User;
     media: Media;
+    skills: Skill;
+    categories: Category;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -78,6 +80,8 @@ export interface Config {
   collectionsSelect: {
     users: UsersSelect<false> | UsersSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    skills: SkillsSelect<false> | SkillsSelect<true>;
+    categories: CategoriesSelect<false> | CategoriesSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -86,10 +90,10 @@ export interface Config {
   db: {
     defaultIDType: number;
   };
-  fallbackLocale: null;
+  fallbackLocale: ('false' | 'none' | 'null') | false | null | ('en' | 'zh' | 'ja') | ('en' | 'zh' | 'ja')[];
   globals: {};
   globalsSelect: {};
-  locale: null;
+  locale: 'en' | 'zh' | 'ja';
   user: User & {
     collection: 'users';
   };
@@ -159,6 +163,104 @@ export interface Media {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skills".
+ */
+export interface Skill {
+  id: number;
+  /**
+   * 技能的显示名称
+   */
+  name: string;
+  /**
+   * URL友好的标识符
+   */
+  slug: string;
+  /**
+   * 简短描述 (用于SEO meta description)
+   */
+  description: string;
+  /**
+   * GitHub 用户名或组织名
+   */
+  author: string;
+  githubUrl: string;
+  /**
+   * 格式: owner/repo
+   */
+  sourceRepo: string;
+  stars?: number | null;
+  category:
+    | 'document-processing'
+    | 'development'
+    | 'data-analysis'
+    | 'business-marketing'
+    | 'communication'
+    | 'creative-media'
+    | 'productivity'
+    | 'security'
+    | 'other';
+  /**
+   * 搜索和筛选关键词
+   */
+  tags?:
+    | {
+        tag?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  compatibility?: ('claude' | 'openai' | 'cursor' | 'other')[] | null;
+  /**
+   * 什么时候使用这个技能
+   */
+  useCases?:
+    | {
+        useCase?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * 需要的工具或依赖
+   */
+  prerequisites?:
+    | {
+        prerequisite?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  /**
+   * 例如: askm install author/skill
+   */
+  installCommand?: string | null;
+  /**
+   * SKILL.md 原始内容
+   */
+  rawSkillMd?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories".
+ */
+export interface Category {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string | null;
+  /**
+   * Emoji 或图标标识符
+   */
+  icon?: string | null;
+  /**
+   * 显示顺序 (小的在前)
+   */
+  order?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -188,6 +290,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'skills';
+        value: number | Skill;
+      } | null)
+    | ({
+        relationTo: 'categories';
+        value: number | Category;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -268,6 +378,57 @@ export interface MediaSelect<T extends boolean = true> {
   filesize?: T;
   width?: T;
   height?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "skills_select".
+ */
+export interface SkillsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  description?: T;
+  author?: T;
+  githubUrl?: T;
+  sourceRepo?: T;
+  stars?: T;
+  category?: T;
+  tags?:
+    | T
+    | {
+        tag?: T;
+        id?: T;
+      };
+  compatibility?: T;
+  useCases?:
+    | T
+    | {
+        useCase?: T;
+        id?: T;
+      };
+  prerequisites?:
+    | T
+    | {
+        prerequisite?: T;
+        id?: T;
+      };
+  installCommand?: T;
+  rawSkillMd?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "categories_select".
+ */
+export interface CategoriesSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  description?: T;
+  icon?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
