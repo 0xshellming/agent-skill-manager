@@ -2,9 +2,41 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { generateObject } from 'ai'
 import { z } from 'zod'
 
-const google = createGoogleGenerativeAI({
-  apiKey: process.env.GOOGLE_AI_API_KEY!,
-})
+const FALLBACK_MODELS = [
+  'gemini-3-flash-preview',
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite',
+  'gemini-2.0-flash',
+  'gemini-2.0-flash-lite',
+] as const
+
+type GeminiModel = (typeof FALLBACK_MODELS)[number]
+
+function getApiKeys(): string[] {
+  const keysEnv = process.env.GOOGLE_AI_API_KEYS
+  if (keysEnv) {
+    return keysEnv
+      .split(',')
+      .map((k) => k.trim())
+      .filter(Boolean)
+  }
+  const singleKey = process.env.GOOGLE_AI_API_KEY
+  return singleKey ? [singleKey] : []
+}
+
+function getRandomApiKey(): string {
+  const keys = getApiKeys()
+  if (keys.length === 0) {
+    throw new Error(
+      'No Google AI API keys configured. Set GOOGLE_AI_API_KEYS or GOOGLE_AI_API_KEY.',
+    )
+  }
+  return keys[Math.floor(Math.random() * keys.length)]
+}
+
+function createGoogleProvider() {
+  return createGoogleGenerativeAI({ apiKey: getRandomApiKey() })
+}
 
 const SkillSchema = z.object({
   name: z.string().describe('Skill name, keep it concise'),
@@ -51,6 +83,27 @@ const SkillSchema = z.object({
 
 export type ParsedSkill = z.infer<typeof SkillSchema>
 
+async function generateWithFallback(prompt: string): Promise<ParsedSkill> {
+  let lastError: Error | null = null
+
+  for (const modelName of FALLBACK_MODELS) {
+    const google = createGoogleProvider()
+    try {
+      const { object } = await generateObject({
+        model: google(modelName),
+        schema: SkillSchema,
+        prompt,
+      })
+      return object
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error))
+      console.warn(`Model ${modelName} failed, trying next fallback...`, lastError.message)
+    }
+  }
+
+  throw lastError ?? new Error('All Gemini models failed')
+}
+
 export async function parseSkillWithAI(
   skillMdContent: string,
   readmeContent: string | null,
@@ -61,10 +114,7 @@ export async function parseSkillWithAI(
     stars: number
   },
 ): Promise<ParsedSkill> {
-  const { object } = await generateObject({
-    model: google('gemini-3-flash-preview'),
-    schema: SkillSchema,
-    prompt: `You are analyzing an AI Agent Skill from GitHub. Extract structured information.
+  const prompt = `You are analyzing an AI Agent Skill from GitHub. Extract structured information.
 
 ## Repository Info
 - Owner: ${repoInfo.owner}
@@ -95,8 +145,7 @@ ${readmeContent.slice(0, 4000)}
 6. Provide accurate Chinese and Japanese translations
 7. Keep English technical terms in translations
 
-Return structured data.`,
-  })
+Return structured data.`
 
-  return object
+  return generateWithFallback(prompt)
 }
