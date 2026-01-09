@@ -33,103 +33,6 @@ function slugify(text: string): string {
     .replace(/(^-|-$)/g, '')
 }
 
-async function processSkill(
-  payload: Payload,
-  source: SkillSource,
-  skillDir: string,
-  branch: string,
-  repoInfo: RepoInfo,
-): Promise<boolean> {
-  const skillPath = source.skillsPath ? `${source.skillsPath}/${skillDir}` : skillDir
-
-  const skillMd = await fetchRawFile(source.owner, source.repo, `${skillPath}/SKILL.md`, branch)
-
-  if (!skillMd) {
-    console.log(`  ⚠️ ${skillDir} has no SKILL.md`)
-    return false
-  }
-
-  const readme = await fetchRawFile(source.owner, source.repo, `${skillPath}/README.md`, branch)
-
-  console.log(`  🤖 Parsing ${skillDir}...`)
-  const parsed = await parseSkillWithAI(skillMd, readme, {
-    owner: source.owner,
-    repo: source.repo,
-    skillName: skillDir,
-    stars: repoInfo.stargazers_count || 0,
-  })
-
-  const skillSlug = slugify(skillDir)
-  const skillId = `${source.owner}/${skillDir}`
-
-  const existing = await payload.find({
-    collection: 'skills',
-    where: { slug: { equals: skillSlug } },
-    limit: 1,
-  })
-
-  const skillData = {
-    name: parsed.name,
-    slug: skillSlug,
-    description: parsed.description,
-    author: source.owner,
-    githubUrl: `https://github.com/${source.owner}/${source.repo}/tree/${branch}/${skillPath}`,
-    sourceRepo: `${source.owner}/${source.repo}`,
-    stars: repoInfo.stargazers_count || 0,
-    category: parsed.category,
-    tags: parsed.tags.map((tag) => ({ tag })),
-    compatibility: parsed.compatibility,
-    useCases: parsed.useCases.map((useCase) => ({ useCase })),
-    prerequisites: parsed.prerequisites.map((prerequisite) => ({ prerequisite })),
-    installCommand: `askm install ${skillId}`,
-    rawSkillMd: skillMd,
-  }
-
-  let skillDocId: number
-
-  if (existing.docs.length > 0) {
-    await payload.update({
-      collection: 'skills',
-      id: existing.docs[0].id,
-      data: skillData,
-      locale: 'en',
-    })
-    skillDocId = existing.docs[0].id
-  } else {
-    const created = await payload.create({
-      collection: 'skills',
-      data: skillData,
-      locale: 'en',
-    })
-    skillDocId = created.id
-  }
-
-  await payload.update({
-    collection: 'skills',
-    id: skillDocId,
-    data: {
-      name: parsed.translations.zh.name,
-      description: parsed.translations.zh.description,
-      useCases: parsed.translations.zh.useCases.map((useCase) => ({ useCase })),
-    },
-    locale: 'zh',
-  })
-
-  await payload.update({
-    collection: 'skills',
-    id: skillDocId,
-    data: {
-      name: parsed.translations.ja.name,
-      description: parsed.translations.ja.description,
-      useCases: parsed.translations.ja.useCases.map((useCase) => ({ useCase })),
-    },
-    locale: 'ja',
-  })
-
-  console.log(`  ✅ Done: ${skillId}`)
-  return true
-}
-
 async function getSkillDirectories(
   source: SkillSource,
   branch: string,
@@ -167,14 +70,14 @@ async function getSkillDirectories(
     .map((item) => item.name)
 }
 
-export async function crawlAllSkills() {
+export async function crawlSkillList() {
   const payload = await getPayload({ config })
   const token = process.env.GITHUB_TOKEN
 
-  console.log('🚀 Starting skill crawl...')
+  console.log('🚀 Starting skill list crawl (no AI)...')
 
-  let totalIndexed = 0
-  let totalFailed = 0
+  let totalCreated = 0
+  let totalSkipped = 0
 
   for (const source of SKILL_SOURCES) {
     console.log(`\n📂 Processing ${source.owner}/${source.repo}/${source.skillsPath}`)
@@ -187,23 +90,199 @@ export async function crawlAllSkills() {
       console.log(`  Found ${skillDirs.length} skill directories`)
 
       for (const skillDir of skillDirs) {
-        try {
-          const success = await processSkill(payload, source, skillDir, branch, repoInfo)
-          if (success) {
-            totalIndexed++
-          }
-          await new Promise((resolve) => setTimeout(resolve, 500))
-        } catch (error) {
-          console.error(`  ❌ Failed: ${skillDir}`, error)
-          totalFailed++
+        const skillSlug = slugify(skillDir)
+        const skillPath = source.skillsPath ? `${source.skillsPath}/${skillDir}` : skillDir
+
+        const existing = await payload.find({
+          collection: 'skills',
+          where: { slug: { equals: skillSlug } },
+          limit: 1,
+        })
+
+        if (existing.docs.length > 0) {
+          console.log(`  ⏭️ Skip: ${skillDir} (already exists)`)
+          totalSkipped++
+          continue
         }
+
+        await payload.create({
+          collection: 'skills',
+          data: {
+            name: skillDir,
+            slug: skillSlug,
+            description: `Skill from ${source.owner}/${source.repo}`,
+            skillPath: `${source.owner}/${source.repo}/${skillPath}`,
+            branch,
+            author: source.owner,
+            sourceRepo: `${source.owner}/${source.repo}`,
+            githubUrl: `https://github.com/${source.owner}/${source.repo}/tree/${branch}/${skillPath}`,
+            stars: repoInfo.stargazers_count || 0,
+            category: 'other',
+            crawlStatus: 'pending',
+          },
+          locale: 'en',
+        })
+
+        console.log(`  ✅ Created: ${skillDir}`)
+        totalCreated++
       }
     } catch (error) {
       console.error(`Failed to process ${source.owner}/${source.repo}:`, error)
     }
   }
 
-  console.log(`\n🏁 Crawl complete: ${totalIndexed} succeeded, ${totalFailed} failed`)
+  console.log(`\n🏁 List crawl complete: ${totalCreated} created, ${totalSkipped} skipped`)
 
-  return { indexed: totalIndexed, failed: totalFailed }
+  return { created: totalCreated, skipped: totalSkipped }
+}
+
+export async function updateNextPendingSkill() {
+  const payload = await getPayload({ config })
+
+  const pending = await payload.find({
+    collection: 'skills',
+    where: {
+      and: [{ crawlStatus: { equals: 'pending' } }, { skillPath: { exists: true } }],
+    },
+    limit: 1,
+    sort: 'createdAt',
+  })
+
+  if (pending.docs.length === 0) {
+    console.log('✅ No pending skills to update')
+    return { updated: false, remaining: 0 }
+  }
+
+  const skill = pending.docs[0]
+
+  if (!skill.skillPath) {
+    console.log(`  ⚠️ Skill ${skill.name} has no skillPath, marking as failed`)
+    await payload.update({
+      collection: 'skills',
+      id: skill.id,
+      data: { crawlStatus: 'failed' },
+    })
+    return { updated: false, error: 'No skillPath', remaining: pending.totalDocs - 1 }
+  }
+
+  console.log(`🤖 Updating skill: ${skill.name} (${skill.skillPath})`)
+
+  await payload.update({
+    collection: 'skills',
+    id: skill.id,
+    data: { crawlStatus: 'processing' },
+  })
+
+  try {
+    const [owner, repo, ...pathParts] = (skill.skillPath || '').split('/')
+    const skillPath = pathParts.join('/')
+    const branch = skill.branch || 'main'
+
+    const skillMd = await fetchRawFile(owner, repo, `${skillPath}/SKILL.md`, branch)
+
+    if (!skillMd) {
+      console.log(`  ⚠️ No SKILL.md found`)
+      await payload.update({
+        collection: 'skills',
+        id: skill.id,
+        data: { crawlStatus: 'failed' },
+      })
+      return { updated: false, error: 'No SKILL.md', remaining: pending.totalDocs - 1 }
+    }
+
+    const readme = await fetchRawFile(owner, repo, `${skillPath}/README.md`, branch)
+
+    const repoInfo = (await fetchRepoInfo(owner, repo, process.env.GITHUB_TOKEN)) as RepoInfo
+
+    const parsed = await parseSkillWithAI(skillMd, readme, {
+      owner,
+      repo,
+      skillName: skill.slug || skill.name || '',
+      stars: repoInfo.stargazers_count || 0,
+    })
+
+    await payload.update({
+      collection: 'skills',
+      id: skill.id,
+      data: {
+        name: parsed.name,
+        description: parsed.description,
+        category: parsed.category,
+        tags: parsed.tags.map((tag) => ({ tag })),
+        compatibility: parsed.compatibility,
+        useCases: parsed.useCases.map((useCase) => ({ useCase })),
+        prerequisites: parsed.prerequisites.map((prerequisite) => ({ prerequisite })),
+        installCommand: `askm install ${owner}/${skill.slug}`,
+        rawSkillMd: skillMd,
+        stars: repoInfo.stargazers_count || 0,
+        crawlStatus: 'completed',
+      },
+      locale: 'en',
+    })
+
+    await payload.update({
+      collection: 'skills',
+      id: skill.id,
+      data: {
+        name: parsed.translations.zh.name,
+        description: parsed.translations.zh.description,
+        useCases: parsed.translations.zh.useCases.map((useCase) => ({ useCase })),
+      },
+      locale: 'zh',
+    })
+
+    await payload.update({
+      collection: 'skills',
+      id: skill.id,
+      data: {
+        name: parsed.translations.ja.name,
+        description: parsed.translations.ja.description,
+        useCases: parsed.translations.ja.useCases.map((useCase) => ({ useCase })),
+      },
+      locale: 'ja',
+    })
+
+    console.log(`  ✅ Updated: ${skill.name}`)
+
+    const remainingCount = await payload.count({
+      collection: 'skills',
+      where: { crawlStatus: { equals: 'pending' } },
+    })
+
+    return { updated: true, skill: skill.name, remaining: remainingCount.totalDocs }
+  } catch (error) {
+    console.error(`  ❌ Failed to update ${skill.name}:`, error)
+
+    await payload.update({
+      collection: 'skills',
+      id: skill.id,
+      data: { crawlStatus: 'failed' },
+    })
+
+    const remainingCount = await payload.count({
+      collection: 'skills',
+      where: { crawlStatus: { equals: 'pending' } },
+    })
+
+    return { updated: false, error: String(error), remaining: remainingCount.totalDocs }
+  }
+}
+
+export async function getCrawlStatus() {
+  const payload = await getPayload({ config })
+
+  const [pending, processing, completed, failed] = await Promise.all([
+    payload.count({ collection: 'skills', where: { crawlStatus: { equals: 'pending' } } }),
+    payload.count({ collection: 'skills', where: { crawlStatus: { equals: 'processing' } } }),
+    payload.count({ collection: 'skills', where: { crawlStatus: { equals: 'completed' } } }),
+    payload.count({ collection: 'skills', where: { crawlStatus: { equals: 'failed' } } }),
+  ])
+
+  return {
+    pending: pending.totalDocs,
+    processing: processing.totalDocs,
+    completed: completed.totalDocs,
+    failed: failed.totalDocs,
+    total: pending.totalDocs + processing.totalDocs + completed.totalDocs + failed.totalDocs,
+  }
 }

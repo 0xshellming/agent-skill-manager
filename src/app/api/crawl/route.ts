@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { crawlAllSkills } from '@/lib/skill-crawler'
+import { crawlSkillList, updateNextPendingSkill, getCrawlStatus } from '@/lib/skill-crawler'
 
 export async function POST(request: Request) {
   const authHeader = request.headers.get('authorization')
@@ -9,15 +9,44 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  try {
-    console.log('📡 Received crawl request')
-    const result = await crawlAllSkills()
+  const url = new URL(request.url)
+  const action = url.searchParams.get('action') || 'status'
 
-    return NextResponse.json({
-      success: true,
-      ...result,
-      timestamp: new Date().toISOString(),
-    })
+  try {
+    switch (action) {
+      case 'list': {
+        console.log('📡 Crawling skill list from GitHub...')
+        const result = await crawlSkillList()
+        return NextResponse.json({
+          success: true,
+          action: 'list',
+          ...result,
+          timestamp: new Date().toISOString(),
+        })
+      }
+
+      case 'update': {
+        console.log('📡 Updating next pending skill...')
+        const result = await updateNextPendingSkill()
+        return NextResponse.json({
+          success: true,
+          action: 'update',
+          ...result,
+          timestamp: new Date().toISOString(),
+        })
+      }
+
+      case 'status':
+      default: {
+        const status = await getCrawlStatus()
+        return NextResponse.json({
+          success: true,
+          action: 'status',
+          ...status,
+          timestamp: new Date().toISOString(),
+        })
+      }
+    }
   } catch (error) {
     console.error('Crawl failed:', error)
     return NextResponse.json({ error: 'Crawl failed', details: String(error) }, { status: 500 })
@@ -25,5 +54,10 @@ export async function POST(request: Request) {
 }
 
 export async function GET() {
-  return NextResponse.json({ status: 'ok' })
+  try {
+    const status = await getCrawlStatus()
+    return NextResponse.json({ status: 'ok', ...status })
+  } catch (error) {
+    return NextResponse.json({ status: 'error', error: String(error) })
+  }
 }

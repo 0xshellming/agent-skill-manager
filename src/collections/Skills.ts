@@ -5,7 +5,7 @@ export const Skills: CollectionConfig = {
 
   admin: {
     useAsTitle: 'name',
-    defaultColumns: ['name', 'author', 'category', 'stars', 'updatedAt'],
+    defaultColumns: ['name', 'author', 'crawlStatus', 'category', 'stars', 'updatedAt'],
     group: '内容管理',
   },
 
@@ -15,10 +15,41 @@ export const Skills: CollectionConfig = {
 
   fields: [
     {
+      name: 'crawlStatus',
+      label: '抓取状态',
+      type: 'select',
+      required: true,
+      defaultValue: 'pending',
+      index: true,
+      options: [
+        { label: '待抓取', value: 'pending' },
+        { label: '抓取中', value: 'processing' },
+        { label: '已完成', value: 'completed' },
+        { label: '失败', value: 'failed' },
+      ],
+      admin: {
+        position: 'sidebar',
+      },
+    },
+    {
+      name: 'skillPath',
+      label: '技能路径',
+      type: 'text',
+      required: true,
+      admin: {
+        description: '格式: owner/repo/path (用于抓取)',
+      },
+    },
+    {
+      name: 'branch',
+      label: '分支',
+      type: 'text',
+      defaultValue: 'main',
+    },
+    {
       name: 'name',
       label: '名称',
       type: 'text',
-      required: true,
       localized: true,
       admin: {
         description: '技能的显示名称',
@@ -53,7 +84,6 @@ export const Skills: CollectionConfig = {
       name: 'description',
       label: '描述',
       type: 'textarea',
-      required: true,
       localized: true,
       admin: {
         description: '简短描述 (用于SEO meta description)',
@@ -63,7 +93,6 @@ export const Skills: CollectionConfig = {
       name: 'author',
       label: '作者',
       type: 'text',
-      required: true,
       index: true,
       admin: {
         description: 'GitHub 用户名或组织名',
@@ -73,13 +102,11 @@ export const Skills: CollectionConfig = {
       name: 'githubUrl',
       label: 'GitHub链接',
       type: 'text',
-      required: true,
     },
     {
       name: 'sourceRepo',
       label: '源仓库',
       type: 'text',
-      required: true,
       admin: {
         description: '格式: owner/repo',
       },
@@ -98,7 +125,6 @@ export const Skills: CollectionConfig = {
       name: 'category',
       label: '分类',
       type: 'select',
-      required: true,
       index: true,
       options: [
         { label: '文档处理', value: 'document-processing' },

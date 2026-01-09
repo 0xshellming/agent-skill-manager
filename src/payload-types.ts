@@ -167,10 +167,16 @@ export interface Media {
  */
 export interface Skill {
   id: number;
+  crawlStatus: 'pending' | 'processing' | 'completed' | 'failed';
+  /**
+   * 格式: owner/repo/path (用于抓取)
+   */
+  skillPath: string;
+  branch?: string | null;
   /**
    * 技能的显示名称
    */
-  name: string;
+  name?: string | null;
   /**
    * URL友好的标识符
    */
@@ -178,27 +184,30 @@ export interface Skill {
   /**
    * 简短描述 (用于SEO meta description)
    */
-  description: string;
+  description?: string | null;
   /**
    * GitHub 用户名或组织名
    */
-  author: string;
-  githubUrl: string;
+  author?: string | null;
+  githubUrl?: string | null;
   /**
    * 格式: owner/repo
    */
-  sourceRepo: string;
+  sourceRepo?: string | null;
   stars?: number | null;
-  category:
-    | 'document-processing'
-    | 'development'
-    | 'data-analysis'
-    | 'business-marketing'
-    | 'communication'
-    | 'creative-media'
-    | 'productivity'
-    | 'security'
-    | 'other';
+  category?:
+    | (
+        | 'document-processing'
+        | 'development'
+        | 'data-analysis'
+        | 'business-marketing'
+        | 'communication'
+        | 'creative-media'
+        | 'productivity'
+        | 'security'
+        | 'other'
+      )
+    | null;
   /**
    * 搜索和筛选关键词
    */
@@ -384,6 +393,9 @@ export interface MediaSelect<T extends boolean = true> {
  * via the `definition` "skills_select".
  */
 export interface SkillsSelect<T extends boolean = true> {
+  crawlStatus?: T;
+  skillPath?: T;
+  branch?: T;
   name?: T;
   slug?: T;
   description?: T;
