@@ -71,6 +71,7 @@ export interface Config {
     media: Media;
     skills: Skill;
     categories: Category;
+    tags: Tag;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -82,6 +83,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     skills: SkillsSelect<false> | SkillsSelect<true>;
     categories: CategoriesSelect<false> | CategoriesSelect<true>;
+    tags: TagsSelect<false> | TagsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -169,6 +171,10 @@ export interface Skill {
   id: number;
   crawlStatus: 'pending' | 'processing' | 'completed' | 'failed';
   /**
+   * 抓取失败时的错误信息
+   */
+  crawlError?: string | null;
+  /**
    * 格式: owner/repo/path (用于抓取)
    */
   skillPath: string;
@@ -195,28 +201,11 @@ export interface Skill {
    */
   sourceRepo?: string | null;
   stars?: number | null;
-  category?:
-    | (
-        | 'document-processing'
-        | 'development'
-        | 'data-analysis'
-        | 'business-marketing'
-        | 'communication'
-        | 'creative-media'
-        | 'productivity'
-        | 'security'
-        | 'other'
-      )
-    | null;
+  category?: (number | null) | Category;
   /**
    * 搜索和筛选关键词
    */
-  tags?:
-    | {
-        tag?: string | null;
-        id?: string | null;
-      }[]
-    | null;
+  tags?: (number | Tag)[] | null;
   compatibility?: ('claude' | 'openai' | 'cursor' | 'other')[] | null;
   /**
    * 什么时候使用这个技能
@@ -270,6 +259,30 @@ export interface Category {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags".
+ */
+export interface Tag {
+  id: number;
+  name: string;
+  slug: string;
+  description?: string | null;
+  /**
+   * Emoji 或图标标识符
+   */
+  icon?: string | null;
+  /**
+   * 用于显示的十六进制颜色值 (如: #3b82f6)
+   */
+  color?: string | null;
+  /**
+   * 显示顺序 (小的在前)
+   */
+  order?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -307,6 +320,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'categories';
         value: number | Category;
+      } | null)
+    | ({
+        relationTo: 'tags';
+        value: number | Tag;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -394,6 +411,7 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface SkillsSelect<T extends boolean = true> {
   crawlStatus?: T;
+  crawlError?: T;
   skillPath?: T;
   branch?: T;
   name?: T;
@@ -404,12 +422,7 @@ export interface SkillsSelect<T extends boolean = true> {
   sourceRepo?: T;
   stars?: T;
   category?: T;
-  tags?:
-    | T
-    | {
-        tag?: T;
-        id?: T;
-      };
+  tags?: T;
   compatibility?: T;
   useCases?:
     | T
@@ -438,6 +451,20 @@ export interface CategoriesSelect<T extends boolean = true> {
   slug?: T;
   description?: T;
   icon?: T;
+  order?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "tags_select".
+ */
+export interface TagsSelect<T extends boolean = true> {
+  name?: T;
+  slug?: T;
+  description?: T;
+  icon?: T;
+  color?: T;
   order?: T;
   updatedAt?: T;
   createdAt?: T;

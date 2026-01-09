@@ -32,6 +32,16 @@ export const Skills: CollectionConfig = {
       },
     },
     {
+      name: 'crawlError',
+      label: '错误信息',
+      type: 'textarea',
+      admin: {
+        position: 'sidebar',
+        description: '抓取失败时的错误信息',
+        condition: (data) => data?.crawlStatus === 'failed',
+      },
+    },
+    {
       name: 'skillPath',
       label: '技能路径',
       type: 'text',
@@ -124,19 +134,9 @@ export const Skills: CollectionConfig = {
     {
       name: 'category',
       label: '分类',
-      type: 'select',
+      type: 'relationship',
+      relationTo: 'categories',
       index: true,
-      options: [
-        { label: '文档处理', value: 'document-processing' },
-        { label: '开发工具', value: 'development' },
-        { label: '数据分析', value: 'data-analysis' },
-        { label: '商业营销', value: 'business-marketing' },
-        { label: '沟通写作', value: 'communication' },
-        { label: '创意媒体', value: 'creative-media' },
-        { label: '效率工具', value: 'productivity' },
-        { label: '安全工具', value: 'security' },
-        { label: '其他', value: 'other' },
-      ],
       admin: {
         position: 'sidebar',
       },
@@ -144,16 +144,13 @@ export const Skills: CollectionConfig = {
     {
       name: 'tags',
       label: '标签',
-      type: 'array',
+      type: 'relationship',
+      relationTo: 'tags',
+      hasMany: true,
       admin: {
         description: '搜索和筛选关键词',
+        position: 'sidebar',
       },
-      fields: [
-        {
-          name: 'tag',
-          type: 'text',
-        },
-      ],
     },
     {
       name: 'compatibility',

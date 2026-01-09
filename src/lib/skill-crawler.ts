@@ -33,6 +33,66 @@ function slugify(text: string): string {
     .replace(/(^-|-$)/g, '')
 }
 
+async function getOrCreateCategory(
+  payload: Payload,
+  categoryName: string,
+): Promise<number | undefined> {
+  const slug = slugify(categoryName)
+
+  const existing = await payload.find({
+    collection: 'categories',
+    where: { slug: { equals: slug } },
+    limit: 1,
+  })
+
+  if (existing.docs.length > 0) {
+    return existing.docs[0].id
+  }
+
+  const created = await payload.create({
+    collection: 'categories',
+    data: {
+      name: categoryName,
+      slug: slug,
+      description: `Category: ${categoryName}`,
+      order: 0,
+    },
+  })
+
+  return created.id
+}
+
+async function getOrCreateTags(payload: Payload, tagNames: string[]): Promise<number[]> {
+  const tagIds: number[] = []
+
+  for (const tagName of tagNames) {
+    const slug = slugify(tagName)
+
+    const existing = await payload.find({
+      collection: 'tags',
+      where: { slug: { equals: slug } },
+      limit: 1,
+    })
+
+    if (existing.docs.length > 0) {
+      tagIds.push(existing.docs[0].id)
+    } else {
+      const created = await payload.create({
+        collection: 'tags',
+        data: {
+          name: tagName,
+          slug: slug,
+          description: `Tag: ${tagName}`,
+          order: 0,
+        },
+      })
+      tagIds.push(created.id)
+    }
+  }
+
+  return tagIds
+}
+
 async function getSkillDirectories(
   source: SkillSource,
   branch: string,
@@ -105,6 +165,8 @@ export async function crawlSkillList() {
           continue
         }
 
+        const categoryId = await getOrCreateCategory(payload, 'other')
+
         await payload.create({
           collection: 'skills',
           data: {
@@ -117,7 +179,7 @@ export async function crawlSkillList() {
             sourceRepo: `${source.owner}/${source.repo}`,
             githubUrl: `https://github.com/${source.owner}/${source.repo}/tree/${branch}/${skillPath}`,
             stars: repoInfo.stargazers_count || 0,
-            category: 'other',
+            category: categoryId,
             crawlStatus: 'pending',
           },
           locale: 'en',
@@ -201,14 +263,17 @@ export async function updateNextPendingSkill() {
       stars: repoInfo.stargazers_count || 0,
     })
 
+    const categoryId = await getOrCreateCategory(payload, parsed.category)
+    const tagIds = await getOrCreateTags(payload, parsed.tags)
+
     await payload.update({
       collection: 'skills',
       id: skill.id,
       data: {
         name: parsed.name,
         description: parsed.description,
-        category: parsed.category,
-        tags: parsed.tags.map((tag) => ({ tag })),
+        category: categoryId,
+        tags: tagIds,
         compatibility: parsed.compatibility,
         useCases: parsed.useCases.map((useCase) => ({ useCase })),
         prerequisites: parsed.prerequisites.map((prerequisite) => ({ prerequisite })),
