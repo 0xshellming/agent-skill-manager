@@ -1,6 +1,6 @@
-import Link from 'next/link'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
+import { getTranslations } from 'next-intl/server'
 import {
   ArrowRight,
   Sparkles,
@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import type { Skill, Category } from '@/payload-types'
+import { Link } from '@/navigation'
 
 const categoryIcons: Record<string, React.ElementType> = {
   development: Code2,
@@ -36,7 +37,8 @@ interface Props {
 }
 
 export default async function HomePage({ params }: Props) {
-  const { locale } = await params
+  await params
+  const t = await getTranslations('home')
   const payloadConfig = await config
   const payload = await getPayload({ config: payloadConfig })
 
@@ -76,16 +78,15 @@ export default async function HomePage({ params }: Props) {
             className="mb-6 px-4 py-1.5 text-sm font-medium animate-fade-in"
           >
             <Sparkles className="mr-1.5 h-3.5 w-3.5" />
-            {totalSkills}+ AI Skills Available
+            {t('badge', { count: totalSkills })}
           </Badge>
 
           <h1 className="mb-6 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl animate-fade-in">
-            The <span className="text-gradient">npm</span> for AI Agent Skills
+            {t('title')}
           </h1>
 
           <p className="mx-auto mb-10 max-w-2xl text-lg text-muted-foreground sm:text-xl animate-fade-in">
-            Discover, install, and share powerful skills for Claude, OpenAI Codex, Cursor, and more.
-            Supercharge your AI agents in seconds.
+            {t('subtitle')}
           </p>
 
           <div className="mx-auto mb-8 max-w-xl animate-fade-in">
@@ -93,29 +94,29 @@ export default async function HomePage({ params }: Props) {
               <Search className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
               <Input
                 type="search"
-                placeholder="Search skills... (e.g., PDF, code review, data analysis)"
+                placeholder={t('searchPlaceholder')}
                 className="h-14 pl-12 pr-4 text-base rounded-xl border-2 border-border bg-card/50 backdrop-blur focus:border-primary"
               />
               <Button
                 size="sm"
                 className="absolute right-2 top-1/2 -translate-y-1/2 bg-gradient-sunset hover:opacity-90"
               >
-                Search
+                {t('searchButton')}
               </Button>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center justify-center gap-4 animate-fade-in">
-            <Link href={`/${locale}/skills`}>
+            <Link href="/skills">
               <Button size="lg" className="bg-gradient-sunset hover:opacity-90 h-12 px-8">
-                Browse All Skills
+                {t('browseAll')}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
             </Link>
-            <Link href={`/${locale}/docs/getting-started`}>
+            <Link href="/docs/getting-started">
               <Button size="lg" variant="outline" className="h-12 px-8">
                 <Terminal className="mr-2 h-4 w-4" />
-                Get Started
+                {t('getStarted')}
               </Button>
             </Link>
           </div>
@@ -123,15 +124,15 @@ export default async function HomePage({ params }: Props) {
           <div className="mt-12 flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground animate-fade-in">
             <div className="flex items-center gap-2">
               <Download className="h-4 w-4" />
-              <span>Easy Install</span>
+              <span>{t('easyInstall')}</span>
             </div>
             <div className="flex items-center gap-2">
               <Star className="h-4 w-4" />
-              <span>Community Rated</span>
+              <span>{t('communityRated')}</span>
             </div>
             <div className="flex items-center gap-2">
               <Zap className="h-4 w-4" />
-              <span>Instant Setup</span>
+              <span>{t('instantSetup')}</span>
             </div>
           </div>
         </div>
@@ -141,16 +142,16 @@ export default async function HomePage({ params }: Props) {
         <section className="container mx-auto px-4 py-16 lg:py-24">
           <div className="mb-12 text-center">
             <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
-              Browse by Category
+              {t('browseByCategory')}
             </h2>
-            <p className="text-muted-foreground">Find the perfect skill for your use case</p>
+            <p className="text-muted-foreground">{t('findPerfectSkill')}</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:gap-6 animate-stagger">
             {categories.map((category) => {
               const IconComponent = categoryIcons[category.slug] || categoryIcons.default
               return (
-                <Link key={category.id} href={`/${locale}/category/${category.slug}`}>
+                <Link key={category.id} href={`/category/${category.slug}`}>
                   <Card className="group h-full card-hover cursor-pointer bg-card/50 backdrop-blur">
                     <CardContent className="flex flex-col items-center p-6 text-center">
                       <div className="mb-4 rounded-xl bg-primary/10 p-3 transition-colors group-hover:bg-primary/20">
@@ -174,12 +175,12 @@ export default async function HomePage({ params }: Props) {
       <section className="container mx-auto px-4 py-16 lg:py-24">
         <div className="mb-12 flex items-center justify-between">
           <div>
-            <h2 className="mb-2 text-3xl font-bold tracking-tight sm:text-4xl">Popular Skills</h2>
-            <p className="text-muted-foreground">Most loved by the community</p>
+            <h2 className="mb-2 text-3xl font-bold tracking-tight sm:text-4xl">{t('popularSkills')}</h2>
+            <p className="text-muted-foreground">{t('mostLoved')}</p>
           </div>
-          <Link href={`/${locale}/skills`}>
+          <Link href="/skills">
             <Button variant="outline">
-              View All
+              {t('viewAll')}
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </Link>
@@ -188,7 +189,7 @@ export default async function HomePage({ params }: Props) {
         {skills.length > 0 ? (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 animate-stagger">
             {skills.map((skill) => (
-              <Link key={skill.id} href={`/${locale}/skill/${skill.slug}`}>
+              <Link key={skill.id} href={`/skill/${skill.slug}`}>
                 <Card className="group h-full card-hover cursor-pointer bg-card/50 backdrop-blur">
                   <CardContent className="p-5">
                     <div className="mb-3 flex items-start justify-between">
@@ -215,7 +216,7 @@ export default async function HomePage({ params }: Props) {
 
                     <div className="flex items-center justify-between">
                       {skill.author && (
-                        <span className="text-xs text-muted-foreground">by {skill.author}</span>
+                        <span className="text-xs text-muted-foreground">{t('by')} {skill.author}</span>
                       )}
                       {skill.compatibility && skill.compatibility.length > 0 && (
                         <div className="flex gap-1">
@@ -240,11 +241,11 @@ export default async function HomePage({ params }: Props) {
           <Card className="bg-card/50 backdrop-blur">
             <CardContent className="flex flex-col items-center justify-center py-16 text-center">
               <Terminal className="mb-4 h-12 w-12 text-muted-foreground" />
-              <h3 className="mb-2 text-lg font-semibold">No skills yet</h3>
-              <p className="mb-6 text-muted-foreground">Be the first to submit a skill!</p>
+              <h3 className="mb-2 text-lg font-semibold">{t('noSkillsYet')}</h3>
+              <p className="mb-6 text-muted-foreground">{t('beFirstToSubmit')}</p>
               <Button className="bg-gradient-sunset hover:opacity-90">
                 <Sparkles className="mr-2 h-4 w-4" />
-                Submit Your Skill
+                {t('submitASkill')}
               </Button>
             </CardContent>
           </Card>
@@ -256,10 +257,10 @@ export default async function HomePage({ params }: Props) {
           <CardContent className="p-8 sm:p-12 lg:p-16">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="mb-4 text-3xl font-bold tracking-tight sm:text-4xl">
-                Install Skills with One Command
+                {t('installWithCommand')}
               </h2>
               <p className="mb-8 text-muted-foreground">
-                Use our CLI tool to instantly add skills to your AI agent
+                {t('useCli')}
               </p>
 
               <div className="mb-8 rounded-xl bg-background/80 p-4 font-mono text-sm sm:text-base">
@@ -267,16 +268,16 @@ export default async function HomePage({ params }: Props) {
               </div>
 
               <div className="flex flex-wrap items-center justify-center gap-4">
-                <Link href={`/${locale}/docs/cli`}>
+                <Link href="/docs/cli">
                   <Button size="lg" className="bg-gradient-sunset hover:opacity-90">
                     <Terminal className="mr-2 h-4 w-4" />
-                    View CLI Docs
+                    {t('viewCliDocs')}
                   </Button>
                 </Link>
-                <Link href={`/${locale}/submit`}>
+                <Link href="/submit">
                   <Button size="lg" variant="outline">
                     <Sparkles className="mr-2 h-4 w-4" />
-                    Submit a Skill
+                    {t('submitASkill')}
                   </Button>
                 </Link>
               </div>

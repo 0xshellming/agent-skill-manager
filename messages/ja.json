@@ -1,0 +1,62 @@
+{
+  "nav": {
+    "skills": "スキル",
+    "categories": "カテゴリー",
+    "docs": "ドキュメント",
+    "submitSkill": "スキルを投稿"
+  },
+  "home": {
+    "badge": "{count}+ の AI スキルが利用可能",
+    "title": "AI Agent スキルの npm",
+    "subtitle": "Claude、OpenAI Codex、Cursor などの強力なスキルを発見、インストール、共有しましょう。数秒で AI エージェントを強化できます。",
+    "searchPlaceholder": "スキルを検索...（例：PDF、コードレビュー、データ分析）",
+    "searchButton": "検索",
+    "browseAll": "すべてのスキルを閲覧",
+    "getStarted": "始める",
+    "easyInstall": "簡単インストール",
+    "communityRated": "コミュニティ評価",
+    "instantSetup": "即座にセットアップ",
+    "browseByCategory": "カテゴリー別に閲覧",
+    "findPerfectSkill": "あなたのユースケースに最適なスキルを見つける",
+    "popularSkills": "人気のスキル",
+    "mostLoved": "コミュニティで最も愛されている",
+    "viewAll": "すべて表示",
+    "noSkillsYet": "まだスキルはありません",
+    "beFirstToSubmit": "最初にスキルを投稿しましょう！",
+    "installWithCommand": "一つのコマンドでスキルをインストール",
+    "useCli": "CLI ツールを使用して、AI エージェントにスキルを即座に追加",
+    "viewCliDocs": "CLI ドキュメントを見る",
+    "submitASkill": "スキルを投稿",
+    "by": "作成者"
+  },
+  "skills": {
+    "title": "すべてのスキル",
+    "description": "利用可能なすべての AI エージェントスキルを閲覧",
+    "search": "スキルを検索...",
+    "filterByCategory": "カテゴリーでフィルター",
+    "allCategories": "すべてのカテゴリー",
+    "sortBy": "並び替え",
+    "newest": "最新",
+    "popular": "最も人気",
+    "trending": "トレンド",
+    "noResults": "スキルが見つかりません",
+    "tryDifferentSearch": "別の検索語またはフィルターを試してください"
+  },
+  "category": {
+    "skillsInCategory": "{name} のスキル",
+    "noSkillsInCategory": "このカテゴリーにはまだスキルがありません",
+    "backToCategories": "カテゴリーに戻る"
+  },
+  "skill": {
+    "install": "インストール",
+    "documentation": "ドキュメント",
+    "repository": "リポジトリ",
+    "author": "作成者",
+    "category": "カテゴリー",
+    "compatibility": "互換性",
+    "stars": "スター",
+    "downloads": "ダウンロード",
+    "lastUpdated": "最終更新",
+    "relatedSkills": "関連スキル"
+  }
+}

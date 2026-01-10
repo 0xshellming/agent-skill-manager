@@ -1,41 +1,47 @@
 'use client'
 
 import * as React from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useTranslations, useLocale } from 'next-intl'
+import { usePathname as useNextPathname } from 'next/navigation'
 import { Menu, X, Sparkles, Github, Command } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-
-const navigation = [
-  { name: 'Skills', href: '/en/skills' },
-  { name: 'Categories', href: '/en/categories' },
-  { name: 'Docs', href: '/en/docs' },
-]
-
-const languages = [
-  { code: 'en', name: 'EN' },
-  { code: 'zh', name: '中文' },
-  { code: 'ja', name: '日本語' },
-]
+import { Link, usePathname } from '@/navigation'
+import { localeNames } from '@/i18n/config'
 
 export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
+  const t = useTranslations('nav')
+  const locale = useLocale()
   const pathname = usePathname()
+  const nextPathname = useNextPathname()
 
-  const currentLocale = pathname.split('/')[1] || 'en'
+  const navigation = [
+    { name: t('skills'), href: '/skills' },
+    { name: t('categories'), href: '/categories' },
+    { name: t('docs'), href: '/docs' },
+  ]
 
-  const switchLocale = (locale: string) => {
-    const pathParts = pathname.split('/')
-    pathParts[1] = locale
-    return pathParts.join('/') || `/${locale}`
+  const languages = Object.entries(localeNames).map(([code, name]) => ({
+    code,
+    name,
+  }))
+
+  const switchLocale = (newLocale: string) => {
+    // 获取当前路径，移除 locale 前缀
+    const pathWithoutLocale = pathname
+    // 构建新的路径
+    if (newLocale === 'en') {
+      return pathWithoutLocale
+    }
+    return `/${newLocale}${pathWithoutLocale}`
   }
 
   return (
     <header className="sticky top-0 z-50 w-full glass-strong">
       <nav className="container mx-auto flex h-16 items-center justify-between px-4 lg:px-8">
         <div className="flex items-center gap-8">
-          <Link href={`/${currentLocale}`} className="flex items-center gap-2 group">
+          <Link href="/" className="flex items-center gap-2 group">
             <div className="relative">
               <Command className="h-8 w-8 text-primary transition-transform duration-300 group-hover:scale-110" />
               <Sparkles className="absolute -top-1 -right-1 h-3 w-3 text-accent animate-pulse" />
@@ -45,11 +51,11 @@ export function Header() {
 
           <div className="hidden md:flex items-center gap-1">
             {navigation.map((item) => {
-              const isActive = pathname.includes(item.href.split('/')[2])
+              const isActive = nextPathname.includes(item.href)
               return (
                 <Link
                   key={item.name}
-                  href={item.href.replace('/en/', `/${currentLocale}/`)}
+                  href={item.href}
                   className={cn(
                     'px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     isActive
@@ -67,18 +73,18 @@ export function Header() {
         <div className="flex items-center gap-3">
           <div className="hidden sm:flex items-center gap-1 bg-muted rounded-lg p-1">
             {languages.map((lang) => (
-              <Link
+              <a
                 key={lang.code}
                 href={switchLocale(lang.code)}
                 className={cn(
                   'px-2.5 py-1 text-xs font-medium rounded-md transition-all duration-200',
-                  currentLocale === lang.code
+                  locale === lang.code
                     ? 'bg-background text-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground',
                 )}
               >
                 {lang.name}
-              </Link>
+              </a>
             ))}
           </div>
 
@@ -99,7 +105,7 @@ export function Header() {
             className="hidden sm:flex bg-gradient-sunset hover:opacity-90 transition-opacity"
           >
             <Sparkles className="h-4 w-4 mr-1.5" />
-            Submit Skill
+            {t('submitSkill')}
           </Button>
 
           <Button
@@ -117,11 +123,11 @@ export function Header() {
         <div className="md:hidden border-t border-border animate-fade-in">
           <div className="container mx-auto px-4 py-4 space-y-3">
             {navigation.map((item) => {
-              const isActive = pathname.includes(item.href.split('/')[2])
+              const isActive = nextPathname.includes(item.href)
               return (
                 <Link
                   key={item.name}
-                  href={item.href.replace('/en/', `/${currentLocale}/`)}
+                  href={item.href}
                   className={cn(
                     'block px-4 py-3 text-base font-medium rounded-lg transition-colors',
                     isActive
@@ -138,19 +144,19 @@ export function Header() {
             <div className="pt-3 border-t border-border">
               <div className="flex items-center gap-2">
                 {languages.map((lang) => (
-                  <Link
+                  <a
                     key={lang.code}
                     href={switchLocale(lang.code)}
                     className={cn(
                       'flex-1 text-center px-3 py-2 text-sm font-medium rounded-lg transition-colors',
-                      currentLocale === lang.code
+                      locale === lang.code
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-muted text-muted-foreground hover:text-foreground',
                     )}
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     {lang.name}
-                  </Link>
+                  </a>
                 ))}
               </div>
             </div>

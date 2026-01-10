@@ -1,7 +1,7 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
+import { Link } from '@/navigation'
 import {
   Star,
   Terminal,
@@ -19,7 +19,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Separator } from '@/components/ui/separator'
 import type { Skill, Category, Tag as TagType } from '@/payload-types'
 import type { Metadata } from 'next'
 
@@ -92,8 +91,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-function generateStructuredData(skill: Skill, locale: string) {
-  const category = skill.category as Category | null
+function generateStructuredData(skill: Skill) {
+  const _category = skill.category as Category | null
 
   return {
     '@context': 'https://schema.org',
@@ -206,7 +205,7 @@ export default async function SkillDetailPage({ params }: Props) {
 
   const relatedSkills = relatedSkillsResult.docs as Skill[]
 
-  const structuredData = generateStructuredData(skill, locale)
+  const structuredData = generateStructuredData(skill)
   const breadcrumbData = generateBreadcrumbData(skill, locale)
 
   const installCommand = skill.installCommand || `npx askm install ${skill.author}/${skill.slug}`
@@ -224,18 +223,18 @@ export default async function SkillDetailPage({ params }: Props) {
 
       <div className="container mx-auto px-4 py-8 lg:py-12">
         <nav className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
-          <Link href={`/${locale}`} className="hover:text-foreground transition-colors">
+          <Link href="/" className="hover:text-foreground transition-colors">
             Home
           </Link>
           <ChevronRight className="h-4 w-4" />
-          <Link href={`/${locale}/skills`} className="hover:text-foreground transition-colors">
+          <Link href="/skills" className="hover:text-foreground transition-colors">
             Skills
           </Link>
           {category && (
             <>
               <ChevronRight className="h-4 w-4" />
               <Link
-                href={`/${locale}/category/${category.slug}`}
+                href={`/category/${category.slug}`}
                 className="hover:text-foreground transition-colors"
               >
                 {category.name}
@@ -261,7 +260,7 @@ export default async function SkillDetailPage({ params }: Props) {
 
                 {skill.author && (
                   <Link
-                    href={`/${locale}/author/${skill.author}`}
+                    href={`/author/${skill.author}`}
                     className="inline-flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors"
                   >
                     <User className="h-4 w-4" />
@@ -286,7 +285,7 @@ export default async function SkillDetailPage({ params }: Props) {
 
             <div className="mb-8 flex flex-wrap gap-2">
               {category && (
-                <Link href={`/${locale}/category/${category.slug}`}>
+                <Link href={`/category/${category.slug}`}>
                   <Badge variant="secondary" className="gap-1">
                     <Layers className="h-3 w-3" />
                     {category.name}
@@ -403,7 +402,7 @@ export default async function SkillDetailPage({ params }: Props) {
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Author</span>
                       <Link
-                        href={`/${locale}/author/${skill.author}`}
+                        href={`/author/${skill.author}`}
                         className="font-medium hover:text-primary transition-colors"
                       >
                         {skill.author}
@@ -414,7 +413,7 @@ export default async function SkillDetailPage({ params }: Props) {
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Category</span>
                       <Link
-                        href={`/${locale}/category/${category.slug}`}
+                        href={`/category/${category.slug}`}
                         className="font-medium hover:text-primary transition-colors"
                       >
                         {category.name}
@@ -439,7 +438,7 @@ export default async function SkillDetailPage({ params }: Props) {
                     {relatedSkills.map((related) => (
                       <Link
                         key={related.id}
-                        href={`/${locale}/skill/${related.slug}`}
+                        href={`/skill/${related.slug}`}
                         className="group flex items-center justify-between rounded-lg p-2 -mx-2 hover:bg-muted transition-colors"
                       >
                         <span className="font-medium group-hover:text-primary transition-colors">

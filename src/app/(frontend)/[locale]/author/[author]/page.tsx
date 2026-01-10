@@ -1,4 +1,3 @@
-import Link from 'next/link'
 import { getPayload } from 'payload'
 import config from '@/payload.config'
 import { Star, Terminal, ArrowLeft, Github, ExternalLink, User } from 'lucide-react'
@@ -7,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import type { Skill } from '@/payload-types'
 import type { Metadata } from 'next'
+import { Link } from '@/navigation'
 
 interface Props {
   params: Promise<{ locale: string; author: string }>
@@ -31,7 +31,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function AuthorPage({ params, searchParams }: Props) {
-  const { locale, author } = await params
+  const { author } = await params
   const search = await searchParams
   const payloadConfig = await config
   const payload = await getPayload({ config: payloadConfig })
@@ -58,7 +58,7 @@ export default async function AuthorPage({ params, searchParams }: Props) {
   return (
     <div className="container mx-auto px-4 py-8 lg:py-12">
       <div className="mb-8">
-        <Link href={`/${locale}/skills`}>
+        <Link href="/skills">
           <Button variant="ghost" size="sm" className="mb-4">
             <ArrowLeft className="mr-2 h-4 w-4" />
             All Skills
@@ -100,7 +100,7 @@ export default async function AuthorPage({ params, searchParams }: Props) {
         <>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 animate-stagger">
             {skills.map((skill) => (
-              <Link key={skill.id} href={`/${locale}/skill/${skill.slug}`}>
+              <Link key={skill.id} href={`/skill/${skill.slug}`}>
                 <Card className="group h-full card-hover cursor-pointer bg-card/50 backdrop-blur">
                   <CardContent className="p-5">
                     <div className="mb-3 flex items-start justify-between">
@@ -147,7 +147,7 @@ export default async function AuthorPage({ params, searchParams }: Props) {
           {totalPages > 1 && (
             <div className="mt-12 flex items-center justify-center gap-2">
               {hasPrevPage && (
-                <Link href={`/${locale}/author/${author}?page=${page - 1}`}>
+                <Link href={`/author/${author}?page=${page - 1}`}>
                   <Button variant="outline">Previous</Button>
                 </Link>
               )}
@@ -155,7 +155,7 @@ export default async function AuthorPage({ params, searchParams }: Props) {
                 Page {page} of {totalPages}
               </span>
               {hasNextPage && (
-                <Link href={`/${locale}/author/${author}?page=${page + 1}`}>
+                <Link href={`/author/${author}?page=${page + 1}`}>
                   <Button variant="outline">Next</Button>
                 </Link>
               )}

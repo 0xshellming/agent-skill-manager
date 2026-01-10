@@ -1,0 +1,62 @@
+{
+  "nav": {
+    "skills": "技能",
+    "categories": "分类",
+    "docs": "文档",
+    "submitSkill": "提交技能"
+  },
+  "home": {
+    "badge": "{count}+ 个 AI 技能可用",
+    "title": "AI Agent 技能的 npm",
+    "subtitle": "发现、安装和分享强大的 AI 技能，适用于 Claude、OpenAI Codex、Cursor 等。几秒钟内为你的 AI 助手增强能力。",
+    "searchPlaceholder": "搜索技能...（例如：PDF、代码审查、数据分析）",
+    "searchButton": "搜索",
+    "browseAll": "浏览所有技能",
+    "getStarted": "开始使用",
+    "easyInstall": "轻松安装",
+    "communityRated": "社区评分",
+    "instantSetup": "即时设置",
+    "browseByCategory": "按分类浏览",
+    "findPerfectSkill": "找到适合你使用场景的完美技能",
+    "popularSkills": "热门技能",
+    "mostLoved": "最受社区喜爱",
+    "viewAll": "查看全部",
+    "noSkillsYet": "暂无技能",
+    "beFirstToSubmit": "成为第一个提交技能的人！",
+    "installWithCommand": "一条命令安装技能",
+    "useCli": "使用我们的 CLI 工具即刻为你的 AI 助手添加技能",
+    "viewCliDocs": "查看 CLI 文档",
+    "submitASkill": "提交技能",
+    "by": "作者"
+  },
+  "skills": {
+    "title": "所有技能",
+    "description": "浏览所有可用的 AI 助手技能",
+    "search": "搜索技能...",
+    "filterByCategory": "按分类筛选",
+    "allCategories": "所有分类",
+    "sortBy": "排序方式",
+    "newest": "最新",
+    "popular": "最受欢迎",
+    "trending": "趋势",
+    "noResults": "未找到技能",
+    "tryDifferentSearch": "尝试不同的搜索词或筛选条件"
+  },
+  "category": {
+    "skillsInCategory": "{name} 中的技能",
+    "noSkillsInCategory": "此分类中暂无技能",
+    "backToCategories": "返回分类"
+  },
+  "skill": {
+    "install": "安装",
+    "documentation": "文档",
+    "repository": "代码库",
+    "author": "作者",
+    "category": "分类",
+    "compatibility": "兼容性",
+    "stars": "星标",
+    "downloads": "下载量",
+    "lastUpdated": "最后更新",
+    "relatedSkills": "相关技能"
+  }
+}

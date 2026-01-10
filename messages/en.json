@@ -1,0 +1,62 @@
+{
+  "nav": {
+    "skills": "Skills",
+    "categories": "Categories",
+    "docs": "Docs",
+    "submitSkill": "Submit Skill"
+  },
+  "home": {
+    "badge": "{count}+ AI Skills Available",
+    "title": "The npm for AI Agent Skills",
+    "subtitle": "Discover, install, and share powerful skills for Claude, OpenAI Codex, Cursor, and more. Supercharge your AI agents in seconds.",
+    "searchPlaceholder": "Search skills... (e.g., PDF, code review, data analysis)",
+    "searchButton": "Search",
+    "browseAll": "Browse All Skills",
+    "getStarted": "Get Started",
+    "easyInstall": "Easy Install",
+    "communityRated": "Community Rated",
+    "instantSetup": "Instant Setup",
+    "browseByCategory": "Browse by Category",
+    "findPerfectSkill": "Find the perfect skill for your use case",
+    "popularSkills": "Popular Skills",
+    "mostLoved": "Most loved by the community",
+    "viewAll": "View All",
+    "noSkillsYet": "No skills yet",
+    "beFirstToSubmit": "Be the first to submit a skill!",
+    "installWithCommand": "Install Skills with One Command",
+    "useCli": "Use our CLI tool to instantly add skills to your AI agent",
+    "viewCliDocs": "View CLI Docs",
+    "submitASkill": "Submit a Skill",
+    "by": "by"
+  },
+  "skills": {
+    "title": "All Skills",
+    "description": "Browse all available AI agent skills",
+    "search": "Search skills...",
+    "filterByCategory": "Filter by Category",
+    "allCategories": "All Categories",
+    "sortBy": "Sort By",
+    "newest": "Newest",
+    "popular": "Most Popular",
+    "trending": "Trending",
+    "noResults": "No skills found",
+    "tryDifferentSearch": "Try a different search term or filter"
+  },
+  "category": {
+    "skillsInCategory": "Skills in {name}",
+    "noSkillsInCategory": "No skills in this category yet",
+    "backToCategories": "Back to Categories"
+  },
+  "skill": {
+    "install": "Install",
+    "documentation": "Documentation",
+    "repository": "Repository",
+    "author": "Author",
+    "category": "Category",
+    "compatibility": "Compatibility",
+    "stars": "Stars",
+    "downloads": "Downloads",
+    "lastUpdated": "Last Updated",
+    "relatedSkills": "Related Skills"
+  }
+}
