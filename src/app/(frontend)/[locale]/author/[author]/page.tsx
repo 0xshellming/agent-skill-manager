@@ -167,7 +167,7 @@ export default async function AuthorPage({ params, searchParams }: Props) {
           <CardContent className="flex flex-col items-center justify-center py-16 text-center">
             <User className="mb-4 h-12 w-12 text-muted-foreground" />
             <h3 className="mb-2 text-lg font-semibold">No skills found</h3>
-            <p className="text-muted-foreground">This author hasn't published any skills yet.</p>
+            <p className="text-muted-foreground">This author has not published any skills yet.</p>
           </CardContent>
         </Card>
       )}

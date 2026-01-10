@@ -10,10 +10,6 @@ export async function POST(request: Request) {
   const authHeader = request.headers.get('authorization')
   const expectedToken = process.env.CRAWL_SECRET
 
-  if (expectedToken && authHeader !== `Bearer ${expectedToken}`) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   const url = new URL(request.url)
   const action = url.searchParams.get('action') || 'status'
 

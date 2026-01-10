@@ -183,3 +183,67 @@ export async function fetchSkillDirectories(
     return []
   }
 }
+
+export async function fetchAwesomeListSkills(
+  owner: string,
+  repo: string,
+  branch = 'main',
+  token?: string,
+): Promise<string[]> {
+  const skills: Array<{ owner: string; repo: string; path: string; name: string }> = []
+  const skillMap = new Map<string, { owner: string; repo: string; path: string; name: string }>()
+
+  const sections = [
+    'productivity-and-collaboration',
+    'development-and-testing',
+    'context-engineering',
+    'specialized-domains',
+    'n8n-automation',
+    'other',
+  ]
+
+  for (const section of sections) {
+    try {
+      const sectionContent = await fetchRawFile(owner, repo, `content/${section}.md`, branch)
+
+      if (!sectionContent) continue
+
+      const skillLinks = sectionContent.match(
+        /\[([^\]]+)\]\(https?:\/\/github\.com\/([^\/\)]+)\/(?:tree\/[^\)]+)?([^\)]+)\)/g,
+      )
+
+      if (skillLinks) {
+        for (const link of skillLinks) {
+          const [, name, fullPath] =
+            link.match(
+              /\[([^\]]+)\]\(https?:\/\/github\.com\/([^\/\)]+)\/(?:tree\/[^\)]+)?([^\)]+)\)/,
+            ) || []
+
+          if (fullPath) {
+            const pathParts = fullPath.split('/').filter(Boolean)
+            const skillOwner = pathParts[0]
+            const skillRepo = pathParts[1]
+            const skillPath = pathParts.slice(2).join('/')
+            const key = `${skillOwner}/${skillRepo}/${skillPath}`
+
+            if (skillOwner && skillRepo && skillPath && !skillMap.has(key)) {
+              skillMap.set(key, {
+                owner: skillOwner,
+                repo: skillRepo,
+                path: skillPath,
+                name: name || skillPath,
+              })
+            }
+          }
+        }
+      }
+    } catch (error) {
+      console.warn(`  ⚠️ Failed to parse section ${section}:`, error)
+    }
+  }
+
+  const extractedSkills = Array.from(skillMap.values())
+  console.log(`  📋 Extracted ${extractedSkills.length} skills from awesome list`)
+
+  return extractedSkills.map((skill) => `${skill.owner}/${skill.repo}/${skill.path}`)
+}
