@@ -1,7 +1,7 @@
 import { getPayload, Payload } from 'payload'
 import config from '@payload-config'
 import { parseSkillWithAI } from './skill-parser'
-import { fetchRepoInfo, fetchRawFile, fetchRepoContents } from './github'
+import { fetchRepoInfo, fetchRawFile, fetchRepoContents, fetchSkillMd } from './github'
 
 interface SkillSource {
   owner: string
@@ -249,10 +249,17 @@ export async function updateNextPendingSkill() {
     const skillPath = pathParts.join('/')
     const branch = skill.branch || 'main'
 
-    const skillMd = await fetchRawFile(owner, repo, `${skillPath}/SKILL.md`, branch)
+    const skillMdResult = await fetchSkillMd(
+      owner,
+      repo,
+      skillPath,
+      branch,
+      process.env.GITHUB_TOKEN,
+    )
 
-    if (!skillMd) {
-      const errorMessage = 'SKILL.md not found in repository'
+    if (!skillMdResult) {
+      const errorMessage =
+        'SKILL.md not found in repository (checked both SKILL.md and .skill files)'
       console.log(`  ⚠️ ${errorMessage}`)
       await payload.update({
         collection: 'skills',
@@ -263,6 +270,11 @@ export async function updateNextPendingSkill() {
         },
       })
       return { updated: false, error: errorMessage, remaining: pending.totalDocs - 1 }
+    }
+
+    const skillMd = skillMdResult.content
+    if (skillMdResult.source === '.skill-zip') {
+      console.log(`  📦 Extracted SKILL.md from ${skillMdResult.fileName}`)
     }
 
     const readme = await fetchRawFile(owner, repo, `${skillPath}/README.md`, branch)
@@ -402,10 +414,17 @@ export async function fetchSkillById(skillId: string) {
 
     console.log(`  📥 Fetching from ${owner}/${repo}/${skillPath}`)
 
-    const skillMd = await fetchRawFile(owner, repo, `${skillPath}/SKILL.md`, branch)
+    const skillMdResult = await fetchSkillMd(
+      owner,
+      repo,
+      skillPath,
+      branch,
+      process.env.GITHUB_TOKEN,
+    )
 
-    if (!skillMd) {
-      const errorMessage = 'SKILL.md not found in repository'
+    if (!skillMdResult) {
+      const errorMessage =
+        'SKILL.md not found in repository (checked both SKILL.md and .skill files)'
       console.log(`  ⚠️ ${errorMessage}`)
       await payload.update({
         collection: 'skills',
@@ -424,6 +443,11 @@ export async function fetchSkillById(skillId: string) {
           branch,
         },
       }
+    }
+
+    const skillMd = skillMdResult.content
+    if (skillMdResult.source === '.skill-zip') {
+      console.log(`  📦 Extracted SKILL.md from ${skillMdResult.fileName}`)
     }
 
     const readme = await fetchRawFile(owner, repo, `${skillPath}/README.md`, branch)
