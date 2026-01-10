@@ -1,5 +1,10 @@
 import { NextResponse } from 'next/server'
-import { crawlSkillList, updateNextPendingSkill, getCrawlStatus } from '@/lib/skill-crawler'
+import {
+  crawlSkillList,
+  updateNextPendingSkill,
+  getCrawlStatus,
+  getFailedSkills,
+} from '@/lib/skill-crawler'
 
 export async function POST(request: Request) {
   const authHeader = request.headers.get('authorization')
@@ -31,6 +36,17 @@ export async function POST(request: Request) {
         return NextResponse.json({
           success: true,
           action: 'update',
+          ...result,
+          timestamp: new Date().toISOString(),
+        })
+      }
+
+      case 'failed': {
+        console.log('📡 Querying failed skills...')
+        const result = await getFailedSkills()
+        return NextResponse.json({
+          success: true,
+          action: 'failed',
           ...result,
           timestamp: new Date().toISOString(),
         })

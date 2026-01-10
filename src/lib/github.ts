@@ -67,9 +67,11 @@ interface GitHubContent {
 
 export interface SkillMdResult {
   content: string
-  source: 'SKILL.md' | '.skill-zip'
+  source: 'SKILL.md' | 'SKILL_GUIDE.md' | '.skill-zip'
   fileName?: string
 }
+
+const SKILL_FILE_NAMES = ['SKILL.md', 'SKILL_GUIDE.md', 'SKILL_STRUCTURE.md'] as const
 
 export async function fetchSkillMd(
   owner: string,
@@ -78,9 +80,11 @@ export async function fetchSkillMd(
   branch = 'main',
   token?: string,
 ): Promise<SkillMdResult | null> {
-  const directMd = await fetchRawFile(owner, repo, `${skillPath}/SKILL.md`, branch)
-  if (directMd) {
-    return { content: directMd, source: 'SKILL.md' }
+  for (const fileName of SKILL_FILE_NAMES) {
+    const content = await fetchRawFile(owner, repo, `${skillPath}/${fileName}`, branch)
+    if (content) {
+      return { content, source: fileName as SkillMdResult['source'], fileName }
+    }
   }
 
   try {

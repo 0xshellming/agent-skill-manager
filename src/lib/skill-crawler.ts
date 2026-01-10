@@ -20,12 +20,24 @@ interface RepoInfo {
 }
 
 const SKILL_SOURCES: SkillSource[] = [
+  // === Official Sources ===
   { owner: 'anthropics', repo: 'skills', skillsPath: 'skills' },
   { owner: 'openai', repo: 'skills', skillsPath: 'skills/.curated' },
   { owner: 'openai', repo: 'skills', skillsPath: 'skills/.system' },
+
+  // === High-Quality Community Collections ===
+  { owner: 'obra', repo: 'superpowers', skillsPath: 'skills', branch: 'main' },
+  { owner: 'jezweb', repo: 'claude-skills', skillsPath: '', branch: 'main' },
+  { owner: 'VoltAgent', repo: 'awesome-claude-skills', skillsPath: '', branch: 'main' },
+  { owner: 'travisvn', repo: 'awesome-claude-skills', skillsPath: '', branch: 'main' },
+  { owner: 'brightdata', repo: 'awesome-claude-skills', skillsPath: '', branch: 'main' },
+  { owner: 'BehiSecc', repo: 'awesome-claude-skills', skillsPath: '', branch: 'main' },
+
+  // === Existing Awesome Lists ===
   { owner: 'ComposioHQ', repo: 'awesome-claude-skills', skillsPath: '', branch: 'master' },
   { owner: 'karanb192', repo: 'awesome-claude-skills', skillsPath: '', branch: 'main' },
-  { owner: 'BehiSecc', repo: 'awesome-claude-skills', skillsPath: '', branch: 'main' },
+
+  // === Specialized Domain Skills ===
   { owner: 'meetrais', repo: 'claude-agent-skills', skillsPath: 'skills', branch: 'main' },
   { owner: 'automationcreators', repo: 'claude-code-skills', skillsPath: '', branch: 'main' },
   { owner: 'levnikolaevich', repo: 'claude-code-skills', skillsPath: '', branch: 'main' },
@@ -273,8 +285,10 @@ export async function updateNextPendingSkill() {
     }
 
     const skillMd = skillMdResult.content
-    if (skillMdResult.source === '.skill-zip') {
-      console.log(`  📦 Extracted SKILL.md from ${skillMdResult.fileName}`)
+    if (skillMdResult.source !== 'SKILL.md') {
+      console.log(
+        `  📦 Using ${skillMdResult.source}${skillMdResult.fileName ? ` (${skillMdResult.fileName})` : ''}`,
+      )
     }
 
     const readme = await fetchRawFile(owner, repo, `${skillPath}/README.md`, branch)
@@ -383,6 +397,53 @@ export async function getCrawlStatus() {
   }
 }
 
+export async function getFailedSkills() {
+  const payload = await getPayload({ config })
+
+  const failed = await payload.find({
+    collection: 'skills',
+    where: { crawlStatus: { equals: 'failed' } },
+    limit: 200,
+    sort: 'createdAt',
+  })
+
+  const errorPatterns: Record<string, number> = {}
+
+  const skills = failed.docs.map((skill) => {
+    const errorType = extractErrorType(skill.crawlError)
+    errorPatterns[errorType] = (errorPatterns[errorType] || 0) + 1
+
+    return {
+      id: skill.id,
+      name: skill.name,
+      slug: skill.slug,
+      skillPath: skill.skillPath,
+      branch: skill.branch,
+      githubUrl: skill.githubUrl,
+      error: skill.crawlError,
+      errorType,
+    }
+  })
+
+  return {
+    total: failed.totalDocs,
+    skills,
+    errorPatterns,
+  }
+}
+
+function extractErrorType(error: string | null | undefined): string {
+  if (!error) return 'No error message'
+  if (error.includes('SKILL.md not found')) return 'SKILL.md not found'
+  if (error.includes('rate limit') || error.includes('Rate limit')) return 'Rate limit'
+  if (error.includes('404')) return '404 Not Found'
+  if (error.includes('timeout') || error.includes('Timeout')) return 'Timeout'
+  if (error.includes('Gemini') || error.includes('generateObject')) return 'AI parsing error'
+  if (error.includes('skillPath')) return 'Invalid skill path'
+  if (error.includes('ENOTFOUND') || error.includes('network')) return 'Network error'
+  return 'Other'
+}
+
 export async function fetchSkillById(skillId: string) {
   const payload = await getPayload({ config })
 
@@ -446,8 +507,10 @@ export async function fetchSkillById(skillId: string) {
     }
 
     const skillMd = skillMdResult.content
-    if (skillMdResult.source === '.skill-zip') {
-      console.log(`  📦 Extracted SKILL.md from ${skillMdResult.fileName}`)
+    if (skillMdResult.source !== 'SKILL.md') {
+      console.log(
+        `  📦 Using ${skillMdResult.source}${skillMdResult.fileName ? ` (${skillMdResult.fileName})` : ''}`,
+      )
     }
 
     const readme = await fetchRawFile(owner, repo, `${skillPath}/README.md`, branch)
@@ -549,5 +612,25 @@ export async function fetchSkillById(skillId: string) {
         skillPath: skill.skillPath,
       },
     }
+  }
+}
+
+export async function deleteSkillById(skillId: string) {
+  const payload = await getPayload({ config })
+
+  console.log(`🗑️ Deleting skill by ID: ${skillId}`)
+
+  try {
+    await payload.delete({
+      collection: 'skills',
+      id: skillId,
+    })
+
+    console.log(`  ✅ Deleted skill ${skillId}`)
+    return { success: true, deleted: true }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error(`  ❌ Failed to delete skill ${skillId}:`, error)
+    return { success: false, error: errorMessage }
   }
 }

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { fetchSkillById } from '@/lib/skill-crawler'
+import { fetchSkillById, deleteSkillById } from '@/lib/skill-crawler'
 
 interface RouteParams {
   params: Promise<{ id: string }>
@@ -60,6 +60,61 @@ export async function POST(request: Request, { params }: RouteParams) {
         error: errorMessage,
         errorType,
         stack: process.env.NODE_ENV === 'development' ? errorStack : undefined,
+        timestamp: new Date().toISOString(),
+      },
+      { status: 500 },
+    )
+  }
+}
+
+export async function DELETE(request: Request, { params }: RouteParams) {
+  const authHeader = request.headers.get('authorization')
+  const expectedToken = process.env.CRAWL_SECRET
+
+  if (expectedToken && authHeader !== `Bearer ${expectedToken}`) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Unauthorized',
+        errorType: 'AuthenticationError',
+      },
+      { status: 401 },
+    )
+  }
+
+  try {
+    const { id } = await params
+    console.log(`📡 API: Delete skill ${id}`)
+
+    const result = await deleteSkillById(id)
+
+    if (result.success) {
+      return NextResponse.json({
+        success: true,
+        action: 'delete',
+        deleted: true,
+        timestamp: new Date().toISOString(),
+      })
+    } else {
+      return NextResponse.json(
+        {
+          success: false,
+          action: 'delete',
+          error: result.error,
+          timestamp: new Date().toISOString(),
+        },
+        { status: 500 },
+      )
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    console.error('API delete skill failed:', error)
+
+    return NextResponse.json(
+      {
+        success: false,
+        action: 'delete',
+        error: errorMessage,
         timestamp: new Date().toISOString(),
       },
       { status: 500 },
